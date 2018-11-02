@@ -7,10 +7,10 @@
 $TvShowDir = "C:\Path\To\Episodes"
 
 # Movies directory
-$MovieDir = "\\File.Server\Path\To\Movies"
+$MovieDir = "\\media\Movies\Switching"
 
 # HandBreakCLI Directory (Wherever you extracted Handbreak to.  Example: C:\Downloads\HandBrakeCLI-1.0.3-win-x86_64
-$HandBreakDir = "C:\Downloads\HandBrakeCLI-1.0.3-win-x86_64"
+$HandBreakDir = "C:\tools\"
 
 ##### Changes Below here are optional #####
 
@@ -22,7 +22,7 @@ $HandBreakDir = "C:\Downloads\HandBrakeCLI-1.0.3-win-x86_64"
 $TvShowSize = 1GB
 
 # Look for Movies larger than this value
-$MovieSize = 2GB
+$MovieSize = 5GB
 
 
 ### Change file format to desired format, defaults to .mkv"
