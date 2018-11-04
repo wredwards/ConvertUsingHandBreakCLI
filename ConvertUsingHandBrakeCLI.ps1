@@ -93,11 +93,11 @@ if(-not(Test-Path("$MovieDir"))){
 }
 
 # Check to see if $TvShowDir exists
-if(-not(Test-Path("$TvShowDir"))){
-    Write-Host "Tv Show directory: $TvShowDir not found.  Please make sure the path is correct.  Quitting" -ForegroundColor Red
-    Read-Host "Press Enter to exit..."
-    exit
-}
+#if(-not(Test-Path("$TvShowDir"))){
+#    Write-Host "Tv Show directory: $TvShowDir not found.  Please make sure the path is correct.  Quitting" -ForegroundColor Red
+#    Read-Host "Press Enter to exit..."
+#    exit
+#}
 
 #Create Hash table to check against before starting conversions.  This will prevent converting items that have already been converted (This spreadsheet updates automatically)
 $CompletedTable = Import-Csv -Path $ConversionCompleted
@@ -113,11 +113,11 @@ foreach($file in $CompletedTable){
 Write-Host "Finding Movie files over $($MovieSize/1GB)GB in $MovieDir and Episodes over $($TvShowSize/1GB)GB in $TvShowDir be patient..." -ForegroundColor Gray
 
 # Find all files larger than 2GB
-$LargeTvFiles = Get-ChildItem $TvShowDir -recurse | where-object {$_.length -gt $TvShowSize}  | Select-Object FullName,Directory,BaseName,Length
+#$LargeTvFiles = Get-ChildItem $TvShowDir -recurse | where-object {$_.length -gt $TvShowSize}  | Select-Object FullName,Directory,BaseName,Length
 $LargeMovieFiles = Get-ChildItem $MovieDir -recurse | where-object {$_.length -gt $MovieSize}  | Select-Object FullName,Directory,BaseName,Length
 
 # Merge the files from both locations into one array and sort largest to smallest (So we start by converting the largest file first)
-$AllLargeFiles = $LargeTvFiles
+#$AllLargeFiles = $LargeTvFiles
 $AllLargeFiles += $LargeMovieFiles
 $AllLargeFiles = $AllLargeFiles | Sort-Object length -Descending
 
