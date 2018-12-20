@@ -4,31 +4,40 @@
 ### Specify Directories below ###
 
 # TV Shows directory
-$TvShowDir = "C:\Path\To\Episodes"
+$TvShowDir = "\\Directory\to\tv\shows"
 
 # Movies directory
-$MovieDir = "\\media\Movies\Switching"
+$MovieDir = "\\Directory\to\movies"
 
 # HandBreakCLI Directory (Wherever you extracted Handbreak to.  Example: C:\Downloads\HandBrakeCLI-1.0.3-win-x86_64
 $HandBreakDir = "C:\tools\"
 
-##### Changes Below here are optional #####
+# TV Exclude List
+$TVExcludeList = $null
 
+# Movie Exclue List
+$MovieExcludeList = "one","two*","*three*"
+
+
+##### Changes Below here are optional #####
 
 
 ### Change file size if desired below ###
 
 # Look for TV Shows larger than this value
-$TvShowSize = 1GB
+$TvShowSize = 600MB
 
 # Look for Movies larger than this value
-$MovieSize = 5GB
+$MovieSize = 20GB
 
 
 ### Change file format to desired format, defaults to .mkv"
 
 #File format must be either mkv or mp4
 $FileFormat = "mkv"
+
+#Language for Audio and Subtitles
+$Language = "eng"
 
 
 ##### These can be changed but will default to the extracted folder and the 64bit install of handbreak #####
@@ -52,9 +61,7 @@ if(Test-Path($LogFileDir)){
 
 
 
-
 ##### DO NOT CHANGE BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING #####
-
 
 
 
@@ -93,11 +100,11 @@ if(-not(Test-Path("$MovieDir"))){
 }
 
 # Check to see if $TvShowDir exists
-#if(-not(Test-Path("$TvShowDir"))){
-#    Write-Host "Tv Show directory: $TvShowDir not found.  Please make sure the path is correct.  Quitting" -ForegroundColor Red
-#    Read-Host "Press Enter to exit..."
-#    exit
-#}
+if(-not(Test-Path("$TvShowDir"))){
+    Write-Host "Tv Show directory: $TvShowDir not found.  Please make sure the path is correct.  Quitting" -ForegroundColor Red
+    Read-Host "Press Enter to exit..."
+    exit
+}
 
 #Create Hash table to check against before starting conversions.  This will prevent converting items that have already been converted (This spreadsheet updates automatically)
 $CompletedTable = Import-Csv -Path $ConversionCompleted
@@ -113,11 +120,11 @@ foreach($file in $CompletedTable){
 Write-Host "Finding Movie files over $($MovieSize/1GB)GB in $MovieDir and Episodes over $($TvShowSize/1GB)GB in $TvShowDir be patient..." -ForegroundColor Gray
 
 # Find all files larger than 2GB
-#$LargeTvFiles = Get-ChildItem $TvShowDir -recurse | where-object {$_.length -gt $TvShowSize}  | Select-Object FullName,Directory,BaseName,Length
-$LargeMovieFiles = Get-ChildItem $MovieDir -recurse | where-object {$_.length -gt $MovieSize}  | Select-Object FullName,Directory,BaseName,Length
+$LargeTvFiles = Get-ChildItem $TvShowDir -recurse -Exclude $TVExcludeList | where-object {$_.length -gt $TvShowSize}  | Select-Object FullName,Directory,BaseName,Length
+$LargeMovieFiles = Get-ChildItem $MovieDir -recurse -Exclude $MovieExcludeList | where-object {$_.length -gt $MovieSize}  | Select-Object FullName,Directory,BaseName,Length
 
 # Merge the files from both locations into one array and sort largest to smallest (So we start by converting the largest file first)
-#$AllLargeFiles = $LargeTvFiles
+$AllLargeFiles = $LargeTvFiles
 $AllLargeFiles += $LargeMovieFiles
 $AllLargeFiles = $AllLargeFiles | Sort-Object length -Descending
 
@@ -149,7 +156,8 @@ foreach($File in $AllLargeFiles){
         $StartingFileSize = $File.Length/1GB
         Write-Host "Starting conversion on $InputFile it is $([math]::Round($StartingFileSize,2))GB in size before conversion" -ForegroundColor Cyan
         # Start the Conversion (The switches used are based off of YIFY's settings and depending on the file can compress by 80% or more (The larger the starting file the more we should be able to shrink it)
-        & $HandBreakDir\HandBrakeCLI.exe -i "$InputFile" -t 1 --angle 1 -o "$OutputFile" -f $FileFormat --modulus 2 -e x265 -q 23 --cfr -a 1 -E copy:* -6 dpl2 -R 48 -B 64 -D 0 --gain 0 --audio-fallback ac3 -m --encoder-preset=veryfast --verbose=1 2> "$LogFileDir\$LogEpisodeName.txt"
+        #& $HandBreakDir\HandBrakeCLI.exe -i "$InputFile" -t 1 --angle 1 -o "$OutputFile" -f $FileFormat --modulus 2 -e x265 -q 23 --cfr -a 1 -E copy:* -6 dpl2 -R 48 -B 64 -D 0 --gain 0 --audio-fallback ac3 -m --encoder-preset=veryfast --verbose=1 2> "$LogFileDir\$LogEpisodeName.txt"
+        & $HandBreakDir\HandBrakeCLI.exe -i "$InputFile" -t 1 -o "$OutputFile" -f $FileFormat --modulus 2 -e x265 -q 23 --cfr --audio-lang-list $Language -E copy:ac3 -6 dpl2 -R 48 -B 256 --audio-fallback ac3 -m --encoder-preset=fast --verbose=1 --subtitle-lang-list $Language --subtitle 'scan' --subtitle-forced --subtitle-burned 2> "$LogFileDir\$LogEpisodeName.txt"
         # Check to make sure that the output file actuall exists so that if there was a conversion error we don't delete the original
         if( Test-Path $OutputFile ){
             Remove-Item $InputFile -Force
